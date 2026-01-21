@@ -1,0 +1,86 @@
+# Development environment configuration
+
+# Development environment settings
+scan:
+  output_format: "both"
+  severity_filter: "medium"  # Filter out low severity in dev
+  continue_on_error: true
+  max_violations: 50  # Limit violations for readability
+
+# Policy settings for development
+policies:
+  enable_caching: true
+  validation:
+    require_metadata: true
+    require_tests: false  # Tests not required in dev
+    validate_syntax: true
+
+# Terraform settings for dev environment
+terraform:
+  init:
+    auto_init: true
+    flags: ["-input=false", "-upgrade"]
+  plan:
+    flags: ["-input=false", "-detailed-exitcode"]
+  workspace:
+    default: "dev"
+    auto_select: true
+
+# Development reporting
+reporting:
+  output_dir: "reports/dev"
+  file_patterns:
+    json: "dev-scan-{timestamp}.json"
+    markdown: "dev-scan-{timestamp}.md"
+  include_metadata: true
+  retention:
+    days: 14
+    max_reports: 50
+
+# Framework focus for development
+frameworks:
+  supported:
+    - "nist-800-53"
+    - "cis-aws"
+    - "cis-azure"
+  default: "cis-aws"
+
+# Development controls
+controls:
+  metadata:
+    required_fields:
+      - "control_id"
+      - "title"
+      - "severity"
+
+# Development settings
+development:
+  debug: true
+  verbose: true
+  watch_mode: false
+  auto_reload: false
+
+# CI integration for dev
+ci:
+  artifacts:
+    store_reports: true
+    retention_days: 30
+  failure:
+    fail_on_violations: false  # Don't fail builds in dev
+    fail_on_severities: []
+
+# Security for dev environment
+security:
+  credentials:
+    log_credentials: false
+    sources:
+      - "environment_variables"
+      - "iam_roles"
+  secret_scanning:
+    enabled: true
+  audit:
+    enabled: true
+    log_file: "reports/dev/audit.log"
+    events:
+      - "policy_evaluation"
+      - "report_generation"

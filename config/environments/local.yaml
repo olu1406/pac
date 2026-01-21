@@ -1,0 +1,57 @@
+# Local development environment configuration
+
+# Override default settings for local development
+scan:
+  output_format: "both"
+  severity_filter: "all"
+  continue_on_error: true
+
+# Local development optimizations
+policies:
+  enable_caching: false  # Disable caching for faster policy iteration
+  validation:
+    require_tests: false  # Don't require tests during development
+
+terraform:
+  init:
+    auto_init: true
+  plan:
+    flags: ["-input=false", "-detailed-exitcode", "-no-color"]
+
+# Local reporting settings
+reporting:
+  output_dir: "reports/local"
+  file_patterns:
+    json: "local-scan-{timestamp}.json"
+    markdown: "local-scan-{timestamp}.md"
+  retention:
+    days: 7
+    max_reports: 20
+
+# Development-friendly settings
+development:
+  debug: false
+  verbose: true
+  watch_mode: false
+  auto_reload: true
+
+# Local security settings
+security:
+  credentials:
+    # For local development, allow credential files
+    sources:
+      - "environment_variables"
+      - "credential_files"
+  
+  secret_scanning:
+    enabled: true
+  
+  audit:
+    enabled: false  # Disable audit logging for local development
+
+# CI settings (disabled for local)
+ci:
+  artifacts:
+    store_reports: false
+  failure:
+    fail_on_violations: false  # Don't fail locally to allow iteration

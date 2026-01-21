@@ -1,0 +1,19 @@
+# Example Terraform variables file for AWS Security Violations
+# This configuration is intentionally insecure for testing purposes
+# DO NOT USE IN PRODUCTION
+
+# Environment configuration
+environment  = "test"
+project_name = "insecure-example"
+
+# S3 configuration - must be globally unique
+s3_bucket_prefix = "your-org-insecure-test"  # Replace with your organization prefix
+
+# Resource tagging
+tags = {
+  Environment = "test"
+  Project     = "insecure-example"
+  ManagedBy   = "terraform"
+  Purpose     = "security-testing"
+  Warning     = "intentionally-insecure"
+}

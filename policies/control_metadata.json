@@ -1,0 +1,1670 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "last_updated": "2026-01-21",
+    "total_controls": 81,
+    "frameworks": [
+      "NIST-800-53",
+      "CIS",
+      "ISO-27001"
+    ],
+    "aws_controls": 36,
+    "azure_controls": 45,
+    "optional_controls": 9
+  },
+  "controls": {
+    "IAM-001": {
+      "title": "IAM policies must not allow wildcard actions on all resources",
+      "severity": "CRITICAL",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-6"
+        ],
+        "cis_aws": [
+          "1.16"
+        ],
+        "iso_27001": [
+          "A.9.2.3"
+        ]
+      },
+      "description": "Prevents overly permissive IAM policies with wildcard actions on all resources",
+      "remediation": "Replace wildcard actions with specific actions and limit resource scope",
+      "policy_file": "policies/aws/identity/iam_policies.rego"
+    },
+    "IAM-002": {
+      "title": "IAM users must not have inline policies",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_aws": [
+          "1.15"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Enforces use of managed policies over inline policies for better governance",
+      "remediation": "Use managed policies or attach policies to groups instead of individual users",
+      "policy_file": "policies/aws/identity/iam_policies.rego"
+    },
+    "IAM-003": {
+      "title": "IAM roles must have trust policy with specific principals",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-3"
+        ],
+        "cis_aws": [
+          "1.17"
+        ],
+        "iso_27001": [
+          "A.9.1.2"
+        ]
+      },
+      "description": "Prevents overly permissive trust policies that allow any principal",
+      "remediation": "Specify explicit principals in the trust policy",
+      "policy_file": "policies/aws/identity/iam_policies.rego"
+    },
+    "IAM-004": {
+      "title": "Root access keys must not be created",
+      "severity": "CRITICAL",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_aws": [
+          "1.4"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Prevents creation of access keys for the root user account",
+      "remediation": "Do not create access keys for the root user. Use IAM users with appropriate permissions instead",
+      "policy_file": "policies/aws/identity/iam_policies.rego"
+    },
+    "IAM-005": {
+      "title": "IAM users with console access must have MFA enabled",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "IA-2"
+        ],
+        "cis_aws": [
+          "1.2"
+        ],
+        "iso_27001": [
+          "A.9.4.2"
+        ]
+      },
+      "description": "Enforces multi-factor authentication for users with console access",
+      "remediation": "Enable MFA for all IAM users with console access using aws_iam_virtual_mfa_device",
+      "policy_file": "policies/aws/identity/mfa_requirements.rego"
+    },
+    "IAM-006": {
+      "title": "Password policy must meet security requirements",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "IA-5"
+        ],
+        "cis_aws": [
+          "1.8"
+        ],
+        "iso_27001": [
+          "A.9.4.3"
+        ]
+      },
+      "description": "Enforces strong password policies including length, complexity, and reuse prevention",
+      "remediation": "Configure password policy with minimum 14 characters, complexity requirements, and reuse prevention",
+      "policy_file": "policies/aws/identity/mfa_requirements.rego"
+    },
+    "NET-001": {
+      "title": "No public SSH access from 0.0.0.0/0",
+      "severity": "CRITICAL",
+      "cloud_provider": "aws",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_aws": [
+          "4.1"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Prevents unrestricted SSH access from the internet",
+      "remediation": "Restrict SSH access to specific IP ranges or use bastion hosts",
+      "policy_file": "policies/aws/networking/security_groups.rego"
+    },
+    "NET-002": {
+      "title": "No public RDP access from 0.0.0.0/0",
+      "severity": "CRITICAL",
+      "cloud_provider": "aws",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_aws": [
+          "4.2"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Prevents unrestricted RDP access from the internet",
+      "remediation": "Restrict RDP access to specific IP ranges or use bastion hosts",
+      "policy_file": "policies/aws/networking/security_groups.rego"
+    },
+    "NET-003": {
+      "title": "Default security group should not allow any traffic",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_aws": [
+          "4.3"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Ensures default security groups are properly secured",
+      "remediation": "Remove all ingress and egress rules from default security group",
+      "policy_file": "policies/aws/networking/security_groups.rego"
+    },
+    "NET-004": {
+      "title": "Security groups should not allow unrestricted outbound traffic",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_aws": [
+          "4.4"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Limits the scope of outbound traffic from security groups",
+      "remediation": "Restrict outbound traffic to specific ports and destinations",
+      "policy_file": "policies/aws/networking/security_groups.rego"
+    },
+    "NET-005": {
+      "title": "VPC Flow Logs must be enabled",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-2"
+        ],
+        "cis_aws": [
+          "2.9"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Enables network traffic logging for security monitoring",
+      "remediation": "Enable VPC Flow Logs using aws_flow_log resource",
+      "policy_file": "policies/aws/networking/vpc_security.rego"
+    },
+    "NET-006": {
+      "title": "VPC must not use default VPC",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_aws": [
+          "2.1"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Enforces use of custom VPCs instead of default VPC",
+      "remediation": "Create custom VPC instead of using default VPC",
+      "policy_file": "policies/aws/networking/vpc_security.rego"
+    },
+    "NET-007": {
+      "title": "Subnets should not auto-assign public IP addresses",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_aws": [
+          "2.2"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Prevents automatic assignment of public IP addresses to instances",
+      "remediation": "Set map_public_ip_on_launch to false for private subnets",
+      "policy_file": "policies/aws/networking/vpc_security.rego"
+    },
+    "NET-008": {
+      "title": "Network ACLs should not allow unrestricted access",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_aws": [
+          "4.5"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Ensures Network ACL rules are properly restricted",
+      "remediation": "Restrict Network ACL rules to specific ports and IP ranges",
+      "policy_file": "policies/aws/networking/vpc_security.rego"
+    },
+    "LOG-001": {
+      "title": "CloudTrail must be enabled in all regions",
+      "severity": "CRITICAL",
+      "cloud_provider": "aws",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-2"
+        ],
+        "cis_aws": [
+          "2.1"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Enables comprehensive audit logging across all AWS regions",
+      "remediation": "Set is_multi_region_trail to true",
+      "policy_file": "policies/aws/logging/cloudtrail.rego"
+    },
+    "LOG-002": {
+      "title": "CloudTrail log file validation must be enabled",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-9"
+        ],
+        "cis_aws": [
+          "2.2"
+        ],
+        "iso_27001": [
+          "A.12.4.2"
+        ]
+      },
+      "description": "Ensures integrity of CloudTrail log files",
+      "remediation": "Set enable_log_file_validation to true",
+      "policy_file": "policies/aws/logging/cloudtrail.rego"
+    },
+    "LOG-003": {
+      "title": "CloudTrail logs must be encrypted at rest",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-28"
+        ],
+        "cis_aws": [
+          "2.7"
+        ],
+        "iso_27001": [
+          "A.10.1.1"
+        ]
+      },
+      "description": "Protects audit logs with encryption at rest",
+      "remediation": "Configure kms_key_id to encrypt CloudTrail logs",
+      "policy_file": "policies/aws/logging/cloudtrail.rego"
+    },
+    "LOG-004": {
+      "title": "CloudTrail must include management events",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-2"
+        ],
+        "cis_aws": [
+          "2.3"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Ensures comprehensive logging of management events",
+      "remediation": "Set include_global_service_events to true",
+      "policy_file": "policies/aws/logging/cloudtrail.rego"
+    },
+    "LOG-005": {
+      "title": "CloudTrail S3 bucket must not be publicly accessible",
+      "severity": "CRITICAL",
+      "cloud_provider": "aws",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-3"
+        ],
+        "cis_aws": [
+          "2.3"
+        ],
+        "iso_27001": [
+          "A.9.1.2"
+        ]
+      },
+      "description": "Protects audit log storage from unauthorized access",
+      "remediation": "Configure S3 bucket to block public access and use proper IAM policies",
+      "policy_file": "policies/aws/logging/cloudtrail.rego"
+    },
+    "LOG-006": {
+      "title": "AWS Config must be enabled",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "CM-8"
+        ],
+        "cis_aws": [
+          "2.5"
+        ],
+        "iso_27001": [
+          "A.12.5.1"
+        ]
+      },
+      "description": "Enables configuration tracking and compliance monitoring",
+      "remediation": "Enable AWS Config configuration recorder to track resource configurations",
+      "policy_file": "policies/aws/logging/config.rego"
+    },
+    "LOG-007": {
+      "title": "AWS Config delivery channel must be configured",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "CM-8"
+        ],
+        "cis_aws": [
+          "2.5"
+        ],
+        "iso_27001": [
+          "A.12.5.1"
+        ]
+      },
+      "description": "Ensures configuration data is properly delivered and stored",
+      "remediation": "Configure AWS Config delivery channel to deliver configuration snapshots",
+      "policy_file": "policies/aws/logging/config.rego"
+    },
+    "LOG-008": {
+      "title": "AWS Config recorder must record all resource types",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "CM-8"
+        ],
+        "cis_aws": [
+          "2.5"
+        ],
+        "iso_27001": [
+          "A.12.5.1"
+        ]
+      },
+      "description": "Ensures comprehensive resource configuration tracking",
+      "remediation": "Set recording_group.all_supported to true",
+      "policy_file": "policies/aws/logging/config.rego"
+    },
+    "LOG-009": {
+      "title": "AWS Config must include global resource types",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "CM-8"
+        ],
+        "cis_aws": [
+          "2.5"
+        ],
+        "iso_27001": [
+          "A.12.5.1"
+        ]
+      },
+      "description": "Includes global AWS resources in configuration tracking",
+      "remediation": "Set recording_group.include_global_resource_types to true",
+      "policy_file": "policies/aws/logging/config.rego"
+    },
+    "DATA-001": {
+      "title": "S3 buckets must have server-side encryption enabled",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-28"
+        ],
+        "cis_aws": [
+          "2.1.1"
+        ],
+        "iso_27001": [
+          "A.10.1.1"
+        ]
+      },
+      "description": "Encrypts S3 data at rest for data protection",
+      "remediation": "Add aws_s3_bucket_server_side_encryption_configuration resource",
+      "policy_file": "policies/aws/data/s3_encryption.rego"
+    },
+    "DATA-002": {
+      "title": "S3 buckets must block public access",
+      "severity": "CRITICAL",
+      "cloud_provider": "aws",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-3"
+        ],
+        "cis_aws": [
+          "2.1.5"
+        ],
+        "iso_27001": [
+          "A.9.1.2"
+        ]
+      },
+      "description": "Prevents unauthorized public access to S3 buckets",
+      "remediation": "Add aws_s3_bucket_public_access_block resource with all settings set to true",
+      "policy_file": "policies/aws/data/s3_encryption.rego"
+    },
+    "DATA-003": {
+      "title": "S3 buckets must have versioning enabled",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "CP-9"
+        ],
+        "cis_aws": [
+          "2.1.3"
+        ],
+        "iso_27001": [
+          "A.12.3.1"
+        ]
+      },
+      "description": "Enables data versioning for backup and recovery",
+      "remediation": "Add aws_s3_bucket_versioning resource with status set to 'Enabled'",
+      "policy_file": "policies/aws/data/s3_encryption.rego"
+    },
+    "DATA-004": {
+      "title": "S3 buckets must have access logging enabled",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-2"
+        ],
+        "cis_aws": [
+          "2.1.4"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Logs S3 access events for security monitoring",
+      "remediation": "Add aws_s3_bucket_logging resource to enable access logging",
+      "policy_file": "policies/aws/data/s3_encryption.rego"
+    },
+    "DATA-005": {
+      "title": "EBS volumes must be encrypted",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-28"
+        ],
+        "cis_aws": [
+          "2.2.1"
+        ],
+        "iso_27001": [
+          "A.10.1.1"
+        ]
+      },
+      "description": "Encrypts EBS storage for data protection",
+      "remediation": "Set encrypted to true for EBS volumes",
+      "policy_file": "policies/aws/data/ebs_encryption.rego"
+    },
+    "DATA-006": {
+      "title": "EBS snapshots must be encrypted",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-28"
+        ],
+        "cis_aws": [
+          "2.2.1"
+        ],
+        "iso_27001": [
+          "A.10.1.1"
+        ]
+      },
+      "description": "Encrypts EBS backups for data protection",
+      "remediation": "Set encrypted to true for EBS snapshots",
+      "policy_file": "policies/aws/data/ebs_encryption.rego"
+    },
+    "DATA-007": {
+      "title": "RDS instances must be encrypted at rest",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-28"
+        ],
+        "cis_aws": [
+          "2.3.1"
+        ],
+        "iso_27001": [
+          "A.10.1.1"
+        ]
+      },
+      "description": "Encrypts database storage for data protection",
+      "remediation": "Set storage_encrypted to true for RDS instances",
+      "policy_file": "policies/aws/data/ebs_encryption.rego"
+    },
+    "DATA-008": {
+      "title": "RDS snapshots must be encrypted",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-28"
+        ],
+        "cis_aws": [
+          "2.3.1"
+        ],
+        "iso_27001": [
+          "A.10.1.1"
+        ]
+      },
+      "description": "Encrypts database backups for data protection",
+      "remediation": "Set storage_encrypted to true for RDS snapshots",
+      "policy_file": "policies/aws/data/ebs_encryption.rego"
+    },
+    "AZ-IAM-001": {
+      "title": "Custom RBAC roles must not have wildcard permissions",
+      "severity": "CRITICAL",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-6"
+        ],
+        "cis_azure": [
+          "1.21"
+        ],
+        "iso_27001": [
+          "A.9.2.3"
+        ]
+      },
+      "description": "Prevents overly permissive RBAC roles with wildcard actions",
+      "remediation": "Replace wildcard actions with specific actions required for the role",
+      "policy_file": "policies/azure/identity/rbac_policies.rego"
+    },
+    "AZ-IAM-002": {
+      "title": "Role assignments must not grant Owner permissions at subscription scope",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_azure": [
+          "1.1"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Limits subscription-level Owner access to reduce security risk",
+      "remediation": "Limit Owner role assignments to specific resource groups or use more restrictive roles",
+      "policy_file": "policies/azure/identity/rbac_policies.rego"
+    },
+    "AZ-IAM-003": {
+      "title": "Service principals must not have permanent credentials",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_azure": [
+          "1.2"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Enforces credential expiration for service principals",
+      "remediation": "Set end_date for application passwords to limit credential lifetime",
+      "policy_file": "policies/azure/identity/rbac_policies.rego"
+    },
+    "AZ-IAM-004": {
+      "title": "Guest users must be reviewed regularly",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_azure": [
+          "1.3"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Ensures guest user governance and regular access reviews",
+      "remediation": "Implement regular access reviews for guest users and remove unused accounts",
+      "policy_file": "policies/azure/identity/rbac_policies.rego"
+    },
+    "AZ-IAM-005": {
+      "title": "Administrative accounts must require MFA",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "IA-2"
+        ],
+        "cis_azure": [
+          "1.1"
+        ],
+        "iso_27001": [
+          "A.9.4.2"
+        ]
+      },
+      "description": "Enforces MFA for privileged access to reduce security risk",
+      "remediation": "Configure conditional access policies to require MFA for privileged roles",
+      "policy_file": "policies/azure/identity/rbac_policies.rego"
+    },
+    "AZ-IAM-006": {
+      "title": "Privileged roles should use Privileged Identity Management (PIM)",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_azure": [
+          "1.15"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Promotes just-in-time access for highly privileged roles",
+      "remediation": "Configure Privileged Identity Management for highly privileged role assignments",
+      "policy_file": "policies/azure/identity/pim_integration.rego"
+    },
+    "AZ-IAM-007": {
+      "title": "Break-glass accounts must be monitored",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_azure": [
+          "1.16"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Ensures emergency account oversight and monitoring",
+      "remediation": "Configure alerts and monitoring for break-glass account usage",
+      "policy_file": "policies/azure/identity/pim_integration.rego"
+    },
+    "AZ-IAM-008": {
+      "title": "Service principal credentials must have limited scope",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-6"
+        ],
+        "cis_azure": [
+          "1.23"
+        ],
+        "iso_27001": [
+          "A.9.2.3"
+        ]
+      },
+      "description": "Limits service principal permissions to reduce attack surface",
+      "remediation": "Limit service principal permissions to specific resource groups when possible",
+      "policy_file": "policies/azure/identity/pim_integration.rego"
+    },
+    "AZ-NET-001": {
+      "title": "Network Security Groups must not allow SSH from any source",
+      "severity": "CRITICAL",
+      "cloud_provider": "azure",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_azure": [
+          "6.1"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Prevents unrestricted SSH access from the internet",
+      "remediation": "Restrict SSH access to specific IP ranges or use bastion hosts",
+      "policy_file": "policies/azure/networking/nsg_security.rego"
+    },
+    "AZ-NET-002": {
+      "title": "Network Security Groups must not allow RDP from any source",
+      "severity": "CRITICAL",
+      "cloud_provider": "azure",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_azure": [
+          "6.2"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Prevents unrestricted RDP access from the internet",
+      "remediation": "Restrict RDP access to specific IP ranges or use bastion hosts",
+      "policy_file": "policies/azure/networking/nsg_security.rego"
+    },
+    "AZ-NET-003": {
+      "title": "Network Security Groups must not allow unrestricted inbound access",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_azure": [
+          "6.3"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Limits inbound traffic scope to reduce attack surface",
+      "remediation": "Restrict inbound access to specific ports and source IP ranges",
+      "policy_file": "policies/azure/networking/nsg_security.rego"
+    },
+    "AZ-NET-004": {
+      "title": "Default Network Security Group rules should be reviewed",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_azure": [
+          "6.4"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Ensures explicit security rules instead of relying on defaults",
+      "remediation": "Define explicit security rules instead of relying on default rules",
+      "policy_file": "policies/azure/networking/nsg_security.rego"
+    },
+    "AZ-NET-005": {
+      "title": "Network Security Groups should deny high-risk ports",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_azure": [
+          "6.5"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Blocks access to dangerous ports from untrusted sources",
+      "remediation": "Restrict access to high-risk ports to specific source IP ranges",
+      "policy_file": "policies/azure/networking/nsg_security.rego"
+    },
+    "AZ-NET-006": {
+      "title": "Virtual Networks must have Network Security Groups associated",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_azure": [
+          "6.6"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Ensures subnet protection through Network Security Groups",
+      "remediation": "Associate a Network Security Group with the subnet using azurerm_subnet_network_security_group_association",
+      "policy_file": "policies/azure/networking/vnet_security.rego"
+    },
+    "AZ-NET-007": {
+      "title": "Virtual Networks should enable DDoS protection",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-5"
+        ],
+        "cis_azure": [
+          "6.7"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Protects against distributed denial of service attacks",
+      "remediation": "Enable DDoS protection by configuring ddos_protection_plan",
+      "policy_file": "policies/azure/networking/vnet_security.rego"
+    },
+    "AZ-NET-008": {
+      "title": "Virtual Network peering should not allow gateway transit from untrusted networks",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_azure": [
+          "6.8"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Secures network peering configurations",
+      "remediation": "Review and restrict gateway transit and forwarded traffic settings for security",
+      "policy_file": "policies/azure/networking/vnet_security.rego"
+    },
+    "AZ-NET-009": {
+      "title": "Subnets should not have public IP addresses auto-assigned",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_azure": [
+          "6.9"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Prevents automatic public exposure of resources",
+      "remediation": "Review if public IP is necessary; use private IPs and load balancers/gateways for public access",
+      "policy_file": "policies/azure/networking/vnet_security.rego"
+    },
+    "AZ-NET-010": {
+      "title": "Network Watcher flow logs should be enabled",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "networking",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-2"
+        ],
+        "cis_azure": [
+          "6.5"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Enables network traffic logging for security monitoring",
+      "remediation": "Enable Network Watcher flow logs using azurerm_network_watcher_flow_log",
+      "policy_file": "policies/azure/networking/vnet_security.rego"
+    },
+    "AZ-LOG-001": {
+      "title": "Activity Log retention should be set to at least 90 days",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-4"
+        ],
+        "cis_azure": [
+          "5.1.1"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Ensures adequate log retention for compliance and investigation",
+      "remediation": "Set retention_policy.days to at least 90 days",
+      "policy_file": "policies/azure/logging/activity_logs.rego"
+    },
+    "AZ-LOG-002": {
+      "title": "Activity Logs should be exported to Log Analytics workspace",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-6"
+        ],
+        "cis_azure": [
+          "5.1.2"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Centralizes log analysis and monitoring capabilities",
+      "remediation": "Configure diagnostic settings to export Activity Logs to Log Analytics workspace",
+      "policy_file": "policies/azure/logging/activity_logs.rego"
+    },
+    "AZ-LOG-003": {
+      "title": "Security Center should have email notifications enabled",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "IR-6"
+        ],
+        "cis_azure": [
+          "2.13"
+        ],
+        "iso_27001": [
+          "A.16.1.2"
+        ]
+      },
+      "description": "Enables security alerting and incident response",
+      "remediation": "Configure email address and enable alert_notifications for Security Center contact",
+      "policy_file": "policies/azure/logging/activity_logs.rego"
+    },
+    "AZ-LOG-004": {
+      "title": "Key Vault should have diagnostic logging enabled",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-2"
+        ],
+        "cis_azure": [
+          "5.1.5"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Logs Key Vault access for security monitoring",
+      "remediation": "Configure diagnostic settings for Key Vault to enable audit logging",
+      "policy_file": "policies/azure/logging/activity_logs.rego"
+    },
+    "AZ-LOG-005": {
+      "title": "Storage Account should have diagnostic logging enabled",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-2"
+        ],
+        "cis_azure": [
+          "5.1.6"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Logs storage access for security monitoring",
+      "remediation": "Configure diagnostic settings for Storage Account to enable access logging",
+      "policy_file": "policies/azure/logging/activity_logs.rego"
+    },
+    "AZ-LOG-006": {
+      "title": "Security Center standard tier should be enabled",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "SI-4"
+        ],
+        "cis_azure": [
+          "2.1"
+        ],
+        "iso_27001": [
+          "A.12.6.1"
+        ]
+      },
+      "description": "Enables advanced threat detection and security features",
+      "remediation": "Set tier to 'Standard' to enable advanced security features",
+      "policy_file": "policies/azure/logging/security_center.rego"
+    },
+    "AZ-LOG-007": {
+      "title": "Security Center auto-provisioning should be enabled",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "SI-4"
+        ],
+        "cis_azure": [
+          "2.2"
+        ],
+        "iso_27001": [
+          "A.12.6.1"
+        ]
+      },
+      "description": "Automates monitoring agent deployment",
+      "remediation": "Set auto_provision to 'On' to automatically install monitoring agents",
+      "policy_file": "policies/azure/logging/security_center.rego"
+    },
+    "AZ-LOG-008": {
+      "title": "Security Center should have default policy assignment",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "SI-4"
+        ],
+        "cis_azure": [
+          "2.15"
+        ],
+        "iso_27001": [
+          "A.12.6.1"
+        ]
+      },
+      "description": "Ensures policy compliance monitoring",
+      "remediation": "Configure Security Center workspace using azurerm_security_center_workspace",
+      "policy_file": "policies/azure/logging/security_center.rego"
+    },
+    "AZ-LOG-009": {
+      "title": "Log Analytics workspace should have appropriate retention",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-4"
+        ],
+        "cis_azure": [
+          "5.1.3"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Maintains log history for compliance requirements",
+      "remediation": "Set retention_in_days to at least 90 days for compliance requirements",
+      "policy_file": "policies/azure/logging/security_center.rego"
+    },
+    "AZ-LOG-010": {
+      "title": "Network Security Group flow logs should be retained for at least 90 days",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "logging",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-4"
+        ],
+        "cis_azure": [
+          "6.5"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Preserves network logs for security analysis",
+      "remediation": "Set retention_policy.days to at least 90 days",
+      "policy_file": "policies/azure/logging/security_center.rego"
+    },
+    "AZ-DATA-001": {
+      "title": "Storage Accounts must have encryption enabled",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-28"
+        ],
+        "cis_azure": [
+          "3.1"
+        ],
+        "iso_27001": [
+          "A.10.1.1"
+        ]
+      },
+      "description": "Enforces HTTPS-only access for data protection",
+      "remediation": "Set enable_https_traffic_only to true",
+      "policy_file": "policies/azure/data/storage_encryption.rego"
+    },
+    "AZ-DATA-002": {
+      "title": "Storage Accounts must not allow public blob access",
+      "severity": "CRITICAL",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-3"
+        ],
+        "cis_azure": [
+          "3.7"
+        ],
+        "iso_27001": [
+          "A.9.1.2"
+        ]
+      },
+      "description": "Prevents unauthorized public access to storage data",
+      "remediation": "Set allow_nested_items_to_be_public to false",
+      "policy_file": "policies/azure/data/storage_encryption.rego"
+    },
+    "AZ-DATA-003": {
+      "title": "Storage Account containers must not have public access",
+      "severity": "CRITICAL",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-3"
+        ],
+        "cis_azure": [
+          "3.8"
+        ],
+        "iso_27001": [
+          "A.9.1.2"
+        ]
+      },
+      "description": "Secures container access from unauthorized users",
+      "remediation": "Set container_access_type to 'private'",
+      "policy_file": "policies/azure/data/storage_encryption.rego"
+    },
+    "AZ-DATA-004": {
+      "title": "Storage Accounts should use customer-managed keys for encryption",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-28"
+        ],
+        "cis_azure": [
+          "3.2"
+        ],
+        "iso_27001": [
+          "A.10.1.1"
+        ]
+      },
+      "description": "Enhances encryption control with customer-managed keys",
+      "remediation": "Configure customer_managed_key block to use Key Vault managed keys",
+      "policy_file": "policies/azure/data/storage_encryption.rego"
+    },
+    "AZ-DATA-005": {
+      "title": "Storage Accounts should have minimum TLS version set to 1.2",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-8"
+        ],
+        "cis_azure": [
+          "3.15"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Enforces secure transport protocols",
+      "remediation": "Set min_tls_version to 'TLS1_2'",
+      "policy_file": "policies/azure/data/storage_encryption.rego"
+    },
+    "AZ-DATA-006": {
+      "title": "Storage Accounts should have soft delete enabled for blobs",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "CP-9"
+        ],
+        "cis_azure": [
+          "3.11"
+        ],
+        "iso_27001": [
+          "A.12.3.1"
+        ]
+      },
+      "description": "Enables data recovery capabilities",
+      "remediation": "Configure blob_properties with delete_retention_policy enabled",
+      "policy_file": "policies/azure/data/storage_encryption.rego"
+    },
+    "AZ-DATA-007": {
+      "title": "SQL Database must have Transparent Data Encryption enabled",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-28"
+        ],
+        "cis_azure": [
+          "4.1.1"
+        ],
+        "iso_27001": [
+          "A.10.1.1"
+        ]
+      },
+      "description": "Encrypts database data at rest",
+      "remediation": "Configure azurerm_mssql_database_extended_auditing_policy and ensure TDE is enabled",
+      "policy_file": "policies/azure/data/database_encryption.rego"
+    },
+    "AZ-DATA-008": {
+      "title": "SQL Server must have auditing enabled",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "AU-2"
+        ],
+        "cis_azure": [
+          "4.1.3"
+        ],
+        "iso_27001": [
+          "A.12.4.1"
+        ]
+      },
+      "description": "Logs database access for security monitoring",
+      "remediation": "Configure azurerm_mssql_server_extended_auditing_policy for the SQL Server",
+      "policy_file": "policies/azure/data/database_encryption.rego"
+    },
+    "AZ-DATA-009": {
+      "title": "SQL Server must not allow Azure services access by default",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-4"
+        ],
+        "cis_azure": [
+          "4.2.1"
+        ],
+        "iso_27001": [
+          "A.13.1.1"
+        ]
+      },
+      "description": "Restricts database access to authorized sources only",
+      "remediation": "Remove the 0.0.0.0-0.0.0.0 firewall rule and configure specific IP ranges",
+      "policy_file": "policies/azure/data/database_encryption.rego"
+    },
+    "AZ-DATA-010": {
+      "title": "Key Vault keys must have expiration dates",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-12"
+        ],
+        "cis_azure": [
+          "8.1"
+        ],
+        "iso_27001": [
+          "A.10.1.2"
+        ]
+      },
+      "description": "Enforces key rotation for security",
+      "remediation": "Set expiration_date for Key Vault keys to ensure regular key rotation",
+      "policy_file": "policies/azure/data/database_encryption.rego"
+    },
+    "AZ-DATA-011": {
+      "title": "Key Vault secrets must have expiration dates",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "SC-12"
+        ],
+        "cis_azure": [
+          "8.2"
+        ],
+        "iso_27001": [
+          "A.10.1.2"
+        ]
+      },
+      "description": "Enforces secret rotation for security",
+      "remediation": "Set expiration_date for Key Vault secrets to ensure regular rotation",
+      "policy_file": "policies/azure/data/database_encryption.rego"
+    },
+    "AZ-DATA-012": {
+      "title": "Key Vault must have soft delete enabled",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "data",
+      "frameworks": {
+        "nist_800_53": [
+          "CP-9"
+        ],
+        "cis_azure": [
+          "8.4"
+        ],
+        "iso_27001": [
+          "A.12.3.1"
+        ]
+      },
+      "description": "Protects against accidental deletion of keys and secrets",
+      "remediation": "Set soft_delete_retention_days to at least 7 days",
+      "policy_file": "policies/azure/data/database_encryption.rego"
+    },
+    "OPT-AWS-IAM-001": {
+      "title": "Require MFA for all API access",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "IA-2"
+        ],
+        "cis_aws": [
+          "1.2"
+        ],
+        "iso_27001": [
+          "A.9.4.2"
+        ]
+      },
+      "description": "Enforces multi-factor authentication for all API access to enhance security",
+      "remediation": "Add conditional policy requiring MFA for console access or attach MFA device",
+      "policy_file": "policies/optional/aws_strict_iam.rego",
+      "optional": true,
+      "category": "strict",
+      "prerequisites": "MFA devices configured for all users",
+      "impact": "May break automated processes that don't support MFA"
+    },
+    "OPT-AWS-IAM-002": {
+      "title": "Enforce password complexity beyond baseline requirements",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "IA-5"
+        ],
+        "cis_aws": [
+          "1.8"
+        ],
+        "iso_27001": [
+          "A.9.4.3"
+        ]
+      },
+      "description": "Enforces stricter password policies than baseline requirements",
+      "remediation": "Set minimum_password_length >= 16, require_symbols = true, require_numbers = true, require_uppercase_characters = true, require_lowercase_characters = true, password_reuse_prevention >= 12",
+      "policy_file": "policies/optional/aws_strict_iam.rego",
+      "optional": true,
+      "category": "strict",
+      "prerequisites": "Users must be prepared for stricter password requirements",
+      "impact": "May require users to change existing passwords"
+    },
+    "OPT-AWS-IAM-003": {
+      "title": "Require IAM role session duration limits",
+      "severity": "MEDIUM",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_aws": [
+          "1.17"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Limits IAM role session duration to reduce security exposure",
+      "remediation": "Set max_session_duration to 3600 seconds (1 hour) or less for security roles",
+      "policy_file": "policies/optional/aws_strict_iam.rego",
+      "optional": true,
+      "category": "strict",
+      "prerequisites": "Applications must handle session renewal",
+      "impact": "May require application changes to handle shorter sessions"
+    },
+    "OPT-AWS-IAM-004": {
+      "title": "Require explicit deny for sensitive actions",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-6"
+        ],
+        "cis_aws": [
+          "1.16"
+        ],
+        "iso_27001": [
+          "A.9.2.3"
+        ]
+      },
+      "description": "Requires explicit deny statements for sensitive actions to prevent unauthorized access",
+      "remediation": "Add explicit deny statements for sensitive actions like iam:*, organizations:*, billing:*",
+      "policy_file": "policies/optional/aws_strict_iam.rego",
+      "optional": true,
+      "category": "strict",
+      "prerequisites": "Review all existing policies for compatibility",
+      "impact": "May break existing workflows that rely on implicit permissions"
+    },
+    "OPT-AZ-IAM-001": {
+      "title": "Require Conditional Access for all administrative roles",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_azure": [
+          "1.1"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Enforces Conditional Access policies for administrative role assignments",
+      "remediation": "Configure Conditional Access policies for administrative roles requiring MFA and device compliance",
+      "policy_file": "policies/optional/azure_strict_identity.rego",
+      "optional": true,
+      "category": "strict",
+      "prerequisites": "Conditional Access policies configured in Azure AD",
+      "impact": "May block administrative access if Conditional Access is not properly configured"
+    },
+    "OPT-AZ-IAM-002": {
+      "title": "Enforce Privileged Identity Management for all privileged access",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_azure": [
+          "1.15"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Requires PIM eligible assignments for privileged roles to implement just-in-time access",
+      "remediation": "Configure role assignment as PIM eligible instead of permanent assignment",
+      "policy_file": "policies/optional/azure_strict_identity.rego",
+      "optional": true,
+      "category": "strict",
+      "prerequisites": "Azure AD Premium P2 license and PIM configuration",
+      "impact": "Changes privileged access workflow to just-in-time model"
+    },
+    "OPT-AZ-IAM-003": {
+      "title": "Require certificate-based authentication for service principals",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "IA-5"
+        ],
+        "cis_azure": [
+          "1.2"
+        ],
+        "iso_27001": [
+          "A.9.4.2"
+        ]
+      },
+      "description": "Enforces certificate-based authentication instead of password-based for service principals",
+      "remediation": "Replace azuread_application_password with azuread_application_certificate for enhanced security",
+      "policy_file": "policies/optional/azure_strict_identity.rego",
+      "optional": true,
+      "category": "strict",
+      "prerequisites": "Certificate management infrastructure in place",
+      "impact": "Requires migration from password-based to certificate-based authentication"
+    },
+    "OPT-AZ-IAM-004": {
+      "title": "Enforce break-glass account monitoring and alerting",
+      "severity": "HIGH",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_azure": [
+          "1.16"
+        ],
+        "iso_27001": [
+          "A.9.2.1"
+        ]
+      },
+      "description": "Requires monitoring and alerting configuration for break-glass emergency accounts",
+      "remediation": "Configure Azure Monitor alerts for break-glass account sign-ins and activities",
+      "policy_file": "policies/optional/azure_strict_identity.rego",
+      "optional": true,
+      "category": "strict",
+      "prerequisites": "Monitoring and alerting infrastructure configured",
+      "impact": "Requires additional monitoring configuration and alert handling procedures"
+    },
+    "OPT-AZ-IAM-005": {
+      "title": "Require just-in-time access for virtual machine administration",
+      "severity": "MEDIUM",
+      "cloud_provider": "azure",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-6"
+        ],
+        "cis_azure": [
+          "7.4"
+        ],
+        "iso_27001": [
+          "A.9.2.3"
+        ]
+      },
+      "description": "Enforces just-in-time access for virtual machine administrative connections",
+      "remediation": "Configure Azure Security Center JIT VM access for administrative connections",
+      "policy_file": "policies/optional/azure_strict_identity.rego",
+      "optional": true,
+      "category": "strict",
+      "prerequisites": "Azure Security Center Standard tier and JIT configuration",
+      "impact": "Changes VM access workflow to require JIT approval"
+    },
+    "IAM-010": {
+      "title": "Test IAM control for validation",
+      "severity": "HIGH",
+      "cloud_provider": "aws",
+      "domain": "identity",
+      "frameworks": {
+        "nist_800_53": [
+          "AC-2"
+        ],
+        "cis_aws": [
+          "1.4"
+        ]
+      },
+      "description": "Test control for script validation",
+      "remediation": "This is a test control",
+      "policy_file": "policies/aws/identity/identity_policies.rego"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+# Example Terraform variables file for Azure Security Violations
+# This configuration is intentionally insecure for testing purposes
+# DO NOT USE IN PRODUCTION
+
+# Environment configuration
+environment  = "test"
+project_name = "insecure-example"
+location     = "East US"
+
+# Network configuration
+vnet_cidr = "10.0.0.0/16"
+
+# Storage configuration - must be globally unique
+storage_account_prefix = "insecuretest"  # Replace with your organization prefix (lowercase, no hyphens)
+
+# Optional: Set subscription ID to test subscription-level violations
+# subscription_id = "00000000-0000-0000-0000-000000000000"
+
+# Resource tagging
+tags = {
+  Environment = "test"
+  Project     = "insecure-example"
+  ManagedBy   = "terraform"
+  Purpose     = "security-testing"
+  Warning     = "intentionally-insecure"
+}

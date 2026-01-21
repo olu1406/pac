@@ -1,0 +1,104 @@
+# Production environment configuration
+
+# Production environment settings
+scan:
+  output_format: "json"
+  severity_filter: "all"
+  continue_on_error: false  # Strict mode for production
+  max_violations: 0  # Report all violations
+  terraform_timeout: 600  # Longer timeout for production
+
+# Policy settings for production
+policies:
+  enable_caching: true
+  validation:
+    require_metadata: true
+    require_tests: true
+    validate_syntax: true
+
+# Terraform settings for production
+terraform:
+  init:
+    auto_init: false  # Manual init required in production
+    flags: ["-input=false"]
+  plan:
+    flags: ["-input=false", "-detailed-exitcode"]
+  workspace:
+    default: "prod"
+    auto_select: false  # Manual workspace selection in production
+
+# Production reporting
+reporting:
+  output_dir: "reports/prod"
+  file_patterns:
+    json: "prod-scan-{timestamp}.json"
+    markdown: "prod-summary-{timestamp}.md"
+    csv: "prod-compliance-{timestamp}.csv"
+  include_metadata: true
+  retention:
+    days: 365  # Keep production reports for 1 year
+    max_reports: 1000
+
+# Full framework compliance for production
+frameworks:
+  supported:
+    - "nist-800-53"
+    - "iso-27001"
+    - "cis-aws"
+    - "cis-azure"
+    - "pci-dss"
+    - "sox"
+  default: "nist-800-53"
+
+# Production controls (strict requirements)
+controls:
+  organization:
+    by_provider: true
+    by_domain: true
+  metadata:
+    required_fields:
+      - "control_id"
+      - "title"
+      - "severity"
+      - "description"
+      - "frameworks"
+      - "remediation"
+    optional_fields:
+      - "references"
+      - "tags"
+
+# Production development settings (minimal)
+development:
+  debug: false
+  verbose: false
+  watch_mode: false
+  auto_reload: false
+
+# CI integration for production
+ci:
+  artifacts:
+    store_reports: true
+    retention_days: 365
+  failure:
+    fail_on_violations: true
+    fail_on_severities:
+      - "medium"
+      - "high"
+      - "critical"
+
+# Security for production environment (strict)
+security:
+  credentials:
+    log_credentials: false
+    sources:
+      - "iam_roles"
+      - "managed_identities"  # No credential files in production
+  secret_scanning:
+    enabled: true
+  audit:
+    enabled: true
+    log_file: "reports/prod/audit.log"
+    events:
+      - "policy_evaluation"
+      - "control_toggle"
+      - "report_generation"

@@ -1,0 +1,254 @@
+# Default configuration for Multi-Cloud Security Policy System
+
+# General settings
+system:
+  name: "Multi-Cloud Security Policy System"
+  version: "1.0.0"
+  description: "Secure-by-default infrastructure policy validation"
+
+# Scanning configuration
+scan:
+  # Default output format: json, markdown, both
+  output_format: "json"
+  
+  # Default severity filter: low, medium, high, critical, all
+  severity_filter: "all"
+  
+  # Continue on errors during policy evaluation
+  continue_on_error: true
+  
+  # Maximum number of violations to report (0 = unlimited)
+  max_violations: 0
+  
+  # Timeout for terraform operations (seconds)
+  terraform_timeout: 300
+
+# Policy configuration
+policies:
+  # Policy directories to scan (relative to project root)
+  directories:
+    - "policies/aws"
+    - "policies/azure"
+    - "policies/common"
+  
+  # Policy file patterns
+  file_patterns:
+    - "*.rego"
+  
+  # Enable policy caching for faster subsequent runs
+  enable_caching: true
+  
+  # Policy validation settings
+  validation:
+    # Require all policies to have metadata
+    require_metadata: true
+    
+    # Require all policies to have test cases
+    require_tests: false
+    
+    # Validate policy syntax on load
+    validate_syntax: true
+
+# Terraform configuration
+terraform:
+  # Default terraform binary path (empty = use PATH)
+  binary_path: ""
+  
+  # Terraform initialization settings
+  init:
+    # Automatically run terraform init if needed
+    auto_init: true
+    
+    # Additional init flags
+    flags: ["-input=false"]
+  
+  # Terraform plan settings
+  plan:
+    # Additional plan flags
+    flags: ["-input=false", "-detailed-exitcode"]
+    
+    # Plan file naming pattern
+    file_pattern: "terraform-{timestamp}.tfplan"
+  
+  # Workspace settings
+  workspace:
+    # Default workspace name
+    default: "default"
+    
+    # Auto-select workspace if it exists
+    auto_select: true
+
+# Reporting configuration
+reporting:
+  # Report output directory
+  output_dir: "reports"
+  
+  # Report file naming patterns
+  file_patterns:
+    json: "scan-report-{environment}-{timestamp}.json"
+    markdown: "scan-report-{environment}-{timestamp}.md"
+    csv: "compliance-matrix-{environment}-{timestamp}.csv"
+  
+  # Include metadata in reports
+  include_metadata: true
+  
+  # Metadata to include
+  metadata:
+    - "timestamp"
+    - "environment"
+    - "commit_hash"
+    - "scan_mode"
+    - "terraform_version"
+    - "conftest_version"
+    - "opa_version"
+  
+  # Report retention settings
+  retention:
+    # Keep reports for this many days (0 = keep forever)
+    days: 30
+    
+    # Maximum number of reports to keep per environment
+    max_reports: 100
+
+# Framework mappings
+frameworks:
+  # Supported compliance frameworks
+  supported:
+    - "nist-800-53"
+    - "iso-27001"
+    - "cis-aws"
+    - "cis-azure"
+    - "pci-dss"
+    - "sox"
+  
+  # Default framework for new controls
+  default: "nist-800-53"
+  
+  # Framework mapping file locations
+  mapping_files:
+    nist-800-53: "config/frameworks/nist-800-53.yaml"
+    iso-27001: "config/frameworks/iso-27001.yaml"
+    cis-aws: "config/frameworks/cis-aws.yaml"
+    cis-azure: "config/frameworks/cis-azure.yaml"
+
+# Control configuration
+controls:
+  # Control organization
+  organization:
+    # Group controls by cloud provider
+    by_provider: true
+    
+    # Group controls by domain
+    by_domain: true
+    
+    # Supported domains
+    domains:
+      - "identity"
+      - "networking"
+      - "logging"
+      - "data"
+      - "governance"
+      - "compute"
+      - "storage"
+  
+  # Control metadata requirements
+  metadata:
+    required_fields:
+      - "control_id"
+      - "title"
+      - "severity"
+      - "description"
+    
+    optional_fields:
+      - "frameworks"
+      - "remediation"
+      - "references"
+      - "tags"
+  
+  # Severity levels
+  severity_levels:
+    - "low"
+    - "medium"
+    - "high"
+    - "critical"
+
+# Development settings
+development:
+  # Enable debug logging
+  debug: false
+  
+  # Enable verbose output
+  verbose: false
+  
+  # Watch mode for policy development
+  watch_mode: false
+  
+  # Auto-reload policies on change
+  auto_reload: false
+
+# CI/CD integration
+ci:
+  # Supported CI systems
+  supported_systems:
+    - "github-actions"
+    - "gitlab-ci"
+    - "jenkins"
+    - "azure-devops"
+  
+  # Artifact settings
+  artifacts:
+    # Store reports as CI artifacts
+    store_reports: true
+    
+    # Artifact retention (days)
+    retention_days: 90
+  
+  # Failure behavior
+  failure:
+    # Fail build on any violations
+    fail_on_violations: true
+    
+    # Fail build only on specific severities
+    fail_on_severities:
+      - "high"
+      - "critical"
+
+# Security settings
+security:
+  # Credential handling
+  credentials:
+    # Never log credentials
+    log_credentials: false
+    
+    # Supported credential sources
+    sources:
+      - "environment_variables"
+      - "iam_roles"
+      - "managed_identities"
+      - "credential_files"
+  
+  # Secret scanning
+  secret_scanning:
+    # Enable secret detection in policies
+    enabled: true
+    
+    # Secret patterns to detect
+    patterns:
+      - "aws_access_key_id"
+      - "aws_secret_access_key"
+      - "azure_client_secret"
+      - "private_key"
+  
+  # Audit logging
+  audit:
+    # Enable audit logging
+    enabled: true
+    
+    # Audit log file
+    log_file: "audit.log"
+    
+    # Events to audit
+    events:
+      - "policy_evaluation"
+      - "control_toggle"
+      - "report_generation"

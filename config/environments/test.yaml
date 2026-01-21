@@ -1,0 +1,97 @@
+# Test environment configuration
+
+# Test environment settings
+scan:
+  output_format: "json"
+  severity_filter: "medium"
+  continue_on_error: true
+  max_violations: 100
+
+# Policy settings for test environment
+policies:
+  enable_caching: true
+  validation:
+    require_metadata: true
+    require_tests: true  # Require tests in test environment
+    validate_syntax: true
+
+# Terraform settings for test environment
+terraform:
+  init:
+    auto_init: true
+    flags: ["-input=false"]
+  plan:
+    flags: ["-input=false", "-detailed-exitcode"]
+  workspace:
+    default: "test"
+    auto_select: true
+
+# Test environment reporting
+reporting:
+  output_dir: "reports/test"
+  file_patterns:
+    json: "test-scan-{environment}-{timestamp}.json"
+    markdown: "test-scan-{environment}-{timestamp}.md"
+    csv: "test-compliance-{timestamp}.csv"
+  include_metadata: true
+  retention:
+    days: 30
+    max_reports: 100
+
+# Full framework support for testing
+frameworks:
+  supported:
+    - "nist-800-53"
+    - "iso-27001"
+    - "cis-aws"
+    - "cis-azure"
+  default: "nist-800-53"
+
+# Test environment controls
+controls:
+  organization:
+    by_provider: true
+    by_domain: true
+  metadata:
+    required_fields:
+      - "control_id"
+      - "title"
+      - "severity"
+      - "description"
+      - "frameworks"
+
+# Test environment development settings
+development:
+  debug: false
+  verbose: false
+  watch_mode: false
+  auto_reload: false
+
+# CI integration for test
+ci:
+  artifacts:
+    store_reports: true
+    retention_days: 60
+  failure:
+    fail_on_violations: true
+    fail_on_severities:
+      - "high"
+      - "critical"
+
+# Security for test environment
+security:
+  credentials:
+    log_credentials: false
+    sources:
+      - "environment_variables"
+      - "iam_roles"
+      - "managed_identities"
+  secret_scanning:
+    enabled: true
+  audit:
+    enabled: true
+    log_file: "reports/test/audit.log"
+    events:
+      - "policy_evaluation"
+      - "control_toggle"
+      - "report_generation"

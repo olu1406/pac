@@ -1,0 +1,36 @@
+# Example Terraform variables file for Azure Basic Secure Configuration
+# Copy this file to terraform.tfvars and customize the values
+
+# Environment configuration
+environment  = "dev"
+project_name = "secure-example"
+location     = "East US"
+
+# Network configuration
+vnet_cidr = "10.0.0.0/16"
+
+# IMPORTANT: Replace these with your actual IP ranges for security
+# These are RFC 5737 documentation ranges and should not be used in production
+allowed_ssh_cidr = "203.0.113.0/24"  # Replace with your office/home IP range
+allowed_rdp_cidr = "203.0.113.0/24"  # Replace with your office/home IP range
+
+# Storage configuration - must be globally unique
+storage_account_prefix = "yourorgexample"  # Replace with your organization prefix (lowercase, no hyphens)
+
+# Feature toggles
+enable_flow_logs = true
+enable_defender  = true
+
+# Monitoring configuration
+log_retention_days = 30
+key_vault_sku     = "standard"
+
+# Resource tagging
+tags = {
+  Environment = "dev"
+  Project     = "secure-example"
+  Owner       = "platform-team"
+  ManagedBy   = "terraform"
+  CostCenter  = "engineering"
+  Compliance  = "required"
+}

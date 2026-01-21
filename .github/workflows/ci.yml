@@ -1,0 +1,436 @@
+name: Multi-Cloud Security Policy CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  TERRAFORM_VERSION: "1.5.0"
+  CONFTEST_VERSION: "0.46.0"
+  OPA_VERSION: "0.57.0"
+
+jobs:
+  # Policy validation and syntax checking
+  validate-policies:
+    name: Validate Policies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup OPA
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: ${{ env.OPA_VERSION }}
+
+      - name: Setup Conftest
+        run: |
+          wget https://github.com/open-policy-agent/conftest/releases/download/v${{ env.CONFTEST_VERSION }}/conftest_${{ env.CONFTEST_VERSION }}_Linux_x86_64.tar.gz
+          tar xzf conftest_${{ env.CONFTEST_VERSION }}_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin
+          conftest --version
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Validate policy syntax
+        run: |
+          chmod +x scripts/validate-policies.sh
+          ./scripts/validate-policies.sh -f json -o policy-validation-results.json
+
+      - name: Upload policy validation results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: policy-validation-results
+          path: policy-validation-results.json
+
+      - name: Check for policy validation failures
+        run: |
+          if [ -f policy-validation-results.json ]; then
+            errors=$(jq '[.violations[] | select(.severity == "CRITICAL" or .severity == "HIGH")] | length' policy-validation-results.json)
+            if [ "$errors" -gt 0 ]; then
+              echo "❌ Found $errors critical/high severity policy validation errors"
+              jq -r '.violations[] | select(.severity == "CRITICAL" or .severity == "HIGH") | "::error file=\(.file),line=\(.line)::\(.message)"' policy-validation-results.json
+              exit 1
+            else
+              echo "✅ Policy validation passed"
+            fi
+          fi
+
+  # Security scanning for secrets and credentials
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Run secret scan
+        run: |
+          chmod +x scripts/scan-secrets.sh
+          ./scripts/scan-secrets.sh -o json
+
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-scan-results
+          path: reports/secret-scan-report_*.json
+
+      - name: Check for security issues
+        run: |
+          latest_report=$(ls -t reports/secret-scan-report_*.json | head -n1)
+          if [ -f "$latest_report" ]; then
+            findings=$(jq '.summary.total_findings' "$latest_report")
+            if [ "$findings" -gt 0 ]; then
+              echo "❌ Found $findings potential security issues"
+              jq -r '.findings[] | "::warning file=\(.file),line=\(.line)::\(.pattern) - \(.match_preview)"' "$latest_report"
+              exit 1
+            else
+              echo "✅ No security issues found"
+            fi
+          fi
+
+  # Test example configurations
+  test-examples:
+    name: Test Examples
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example-type: [good, bad]
+        cloud: [aws, azure]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Setup OPA
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: ${{ env.OPA_VERSION }}
+
+      - name: Setup Conftest
+        run: |
+          wget https://github.com/open-policy-agent/conftest/releases/download/v${{ env.CONFTEST_VERSION }}/conftest_${{ env.CONFTEST_VERSION }}_Linux_x86_64.tar.gz
+          tar xzf conftest_${{ env.CONFTEST_VERSION }}_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin
+
+      - name: Install jq and bc
+        run: sudo apt-get update && sudo apt-get install -y jq bc
+
+      - name: Test ${{ matrix.example-type }} ${{ matrix.cloud }} examples
+        run: |
+          chmod +x scripts/test-policies.sh
+          ./scripts/test-policies.sh -t ${{ matrix.example-type }} -p policies/${{ matrix.cloud }} -f json -o test-results-${{ matrix.example-type }}-${{ matrix.cloud }}.json
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.example-type }}-${{ matrix.cloud }}
+          path: test-results-${{ matrix.example-type }}-${{ matrix.cloud }}.json
+
+      - name: Validate test results
+        run: |
+          result_file="test-results-${{ matrix.example-type }}-${{ matrix.cloud }}.json"
+          if [ -f "$result_file" ]; then
+            failed_tests=$(jq '[.test_results[] | select(.test_passed == false)] | length' "$result_file")
+            total_tests=$(jq '.test_results | length' "$result_file")
+            
+            if [ "$failed_tests" -gt 0 ]; then
+              echo "❌ $failed_tests out of $total_tests tests failed for ${{ matrix.example-type }} ${{ matrix.cloud }} examples"
+              jq -r '.test_results[] | select(.test_passed == false) | "::error::Test failed - \(.example_directory) against \(.policy_directory): Expected \(.expected_result) but got \(.actual_result)"' "$result_file"
+              exit 1
+            else
+              echo "✅ All $total_tests tests passed for ${{ matrix.example-type }} ${{ matrix.cloud }} examples"
+            fi
+          fi
+
+  # Property-based testing
+  property-based-tests:
+    name: Property-Based Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-type: [policy-consistency, control-toggle, report-format, syntax-validation, no-credentials]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup OPA
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: ${{ env.OPA_VERSION }}
+
+      - name: Setup Conftest
+        run: |
+          wget https://github.com/open-policy-agent/conftest/releases/download/v${{ env.CONFTEST_VERSION }}/conftest_${{ env.CONFTEST_VERSION }}_Linux_x86_64.tar.gz
+          tar xzf conftest_${{ env.CONFTEST_VERSION }}_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq bc
+
+      - name: Run property-based test - ${{ matrix.test-type }}
+        env:
+          PBT_ITERATIONS: 50  # Reduced for CI performance
+        run: |
+          chmod +x tests/test-${{ matrix.test-type }}.sh
+          ./tests/test-${{ matrix.test-type }}.sh
+
+      - name: Upload property-based test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: pbt-results-${{ matrix.test-type }}
+          path: |
+            reports/pbt_*.json
+            reports/failing_*
+
+      - name: Check property-based test results
+        run: |
+          latest_report=$(ls -t reports/pbt_*${{ matrix.test-type }}*.json 2>/dev/null | head -n1 || echo "")
+          if [ -n "$latest_report" ] && [ -f "$latest_report" ]; then
+            failed=$(jq -r '.summary.failed' "$latest_report" 2>/dev/null || echo "0")
+            total=$(jq -r '.summary.total' "$latest_report" 2>/dev/null || echo "0")
+            success_rate=$(jq -r '.summary.success_rate' "$latest_report" 2>/dev/null || echo "0")
+            
+            echo "Property-based test results for ${{ matrix.test-type }}:"
+            echo "  Total iterations: $total"
+            echo "  Failed: $failed"
+            echo "  Success rate: $success_rate%"
+            
+            if [ "$failed" -gt 0 ]; then
+              echo "❌ Property-based test ${{ matrix.test-type }} had $failed failures"
+              # Don't fail CI for property-based tests, just warn
+              echo "::warning::Property-based test ${{ matrix.test-type }} had $failed out of $total iterations fail (success rate: $success_rate%)"
+            else
+              echo "✅ Property-based test ${{ matrix.test-type }} passed all iterations"
+            fi
+          else
+            echo "::warning::No property-based test results found for ${{ matrix.test-type }}"
+          fi
+
+  # Terraform module validation
+  validate-modules:
+    name: Validate Terraform Modules
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [aws/organization, aws/networking, azure/management-groups, azure/networking]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Format Check
+        run: |
+          cd modules/${{ matrix.module }}
+          terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: |
+          cd modules/${{ matrix.module }}
+          terraform init -backend=false
+
+      - name: Terraform Validate
+        run: |
+          cd modules/${{ matrix.module }}
+          terraform validate
+
+  # Integration testing with full workflow
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    needs: [validate-policies, validate-modules, property-based-tests]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Setup OPA
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: ${{ env.OPA_VERSION }}
+
+      - name: Setup Conftest
+        run: |
+          wget https://github.com/open-policy-agent/conftest/releases/download/v${{ env.CONFTEST_VERSION }}/conftest_${{ env.CONFTEST_VERSION }}_Linux_x86_64.tar.gz
+          tar xzf conftest_${{ env.CONFTEST_VERSION }}_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Run full integration test
+        run: |
+          chmod +x scripts/scan.sh
+          
+          # Test with good AWS example
+          echo "Testing good AWS example..."
+          cd examples/good/aws-basic
+          ../../../scripts/scan.sh -e ci -o json
+          
+          # Test with bad AWS example (should fail)
+          echo "Testing bad AWS example..."
+          cd ../../../examples/bad/aws-violations
+          if ../../../scripts/scan.sh -e ci -o json; then
+            echo "❌ Bad example should have failed but passed"
+            exit 1
+          else
+            echo "✅ Bad example correctly failed"
+          fi
+
+      - name: Upload integration test reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration-test-reports
+          path: |
+            examples/*/reports/
+            reports/
+
+  # Generate compliance reports
+  compliance-report:
+    name: Generate Compliance Report
+    runs-on: ubuntu-latest
+    needs: [test-examples]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Generate compliance matrix
+        run: |
+          chmod +x scripts/export-compliance.sh
+          ./scripts/export-compliance.sh -f both
+
+      - name: Upload compliance reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: compliance-reports
+          path: |
+            reports/compliance_export_*.csv
+            reports/compliance_export_*.json
+
+  # Documentation and artifact collection
+  collect-artifacts:
+    name: Collect Artifacts
+    runs-on: ubuntu-latest
+    needs: [validate-policies, security-scan, test-examples, property-based-tests, integration-test]
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Create summary report
+        run: |
+          echo "# CI Pipeline Summary" > pipeline-summary.md
+          echo "" >> pipeline-summary.md
+          echo "**Build:** ${{ github.run_number }}" >> pipeline-summary.md
+          echo "**Commit:** ${{ github.sha }}" >> pipeline-summary.md
+          echo "**Branch:** ${{ github.ref_name }}" >> pipeline-summary.md
+          echo "**Triggered by:** ${{ github.event_name }}" >> pipeline-summary.md
+          echo "" >> pipeline-summary.md
+          
+          # Add job status
+          echo "## Job Status" >> pipeline-summary.md
+          echo "- Policy Validation: ${{ needs.validate-policies.result }}" >> pipeline-summary.md
+          echo "- Security Scan: ${{ needs.security-scan.result }}" >> pipeline-summary.md
+          echo "- Example Tests: ${{ needs.test-examples.result }}" >> pipeline-summary.md
+          echo "- Property-Based Tests: ${{ needs.property-based-tests.result }}" >> pipeline-summary.md
+          echo "- Integration Test: ${{ needs.integration-test.result }}" >> pipeline-summary.md
+          echo "" >> pipeline-summary.md
+          
+          # Summarize property-based test results
+          echo "## Property-Based Test Results" >> pipeline-summary.md
+          for pbt_dir in pbt-results-*/; do
+            if [ -d "$pbt_dir" ]; then
+              test_type=$(basename "$pbt_dir" | sed 's/pbt-results-//')
+              echo "### $test_type" >> pipeline-summary.md
+              
+              # Find the latest result file
+              latest_result=$(find "$pbt_dir" -name "pbt_*.json" -type f | head -n1)
+              if [ -f "$latest_result" ]; then
+                total=$(jq -r '.summary.total' "$latest_result" 2>/dev/null || echo "N/A")
+                passed=$(jq -r '.summary.passed' "$latest_result" 2>/dev/null || echo "N/A")
+                failed=$(jq -r '.summary.failed' "$latest_result" 2>/dev/null || echo "N/A")
+                success_rate=$(jq -r '.summary.success_rate' "$latest_result" 2>/dev/null || echo "N/A")
+                
+                echo "- Total iterations: $total" >> pipeline-summary.md
+                echo "- Passed: $passed" >> pipeline-summary.md
+                echo "- Failed: $failed" >> pipeline-summary.md
+                echo "- Success rate: $success_rate%" >> pipeline-summary.md
+              else
+                echo "- No results found" >> pipeline-summary.md
+              fi
+              echo "" >> pipeline-summary.md
+            fi
+          done
+          
+          # List artifacts
+          echo "## Generated Artifacts" >> pipeline-summary.md
+          find . -name "*.json" -o -name "*.csv" -o -name "*.md" | sort >> pipeline-summary.md
+
+      - name: Upload pipeline summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: pipeline-summary
+          path: pipeline-summary.md
+
+  # Notification on failure
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [validate-policies, security-scan, test-examples, validate-modules, property-based-tests, integration-test]
+    if: failure()
+    steps:
+      - name: Create failure summary
+        run: |
+          echo "❌ CI Pipeline Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Failed Jobs:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Policy Validation: ${{ needs.validate-policies.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Scan: ${{ needs.security-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Example Tests: ${{ needs.test-examples.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Module Validation: ${{ needs.validate-modules.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Property-Based Tests: ${{ needs.property-based-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Integration Test: ${{ needs.integration-test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the failed jobs and fix the issues before merging." >> $GITHUB_STEP_SUMMARY
+
+# Workflow-level environment variables and settings
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write

@@ -1,0 +1,193 @@
+# Multi-Cloud Security Policy System .gitignore
+
+# Terraform files
+*.tfplan
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+terraform.tfplan
+crash.log
+crash.*.log
+
+# Reports and output
+reports/
+*.json
+*.csv
+!examples/**/*.json
+!config/**/*.json
+!policies/**/*.json
+
+# Logs
+*.log
+audit.log
+debug.log
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Credentials and secrets
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account.json
+.env
+.env.local
+.env.*.local
+
+# AWS credentials
+.aws/
+aws-credentials
+
+# Azure credentials
+.azure/
+azure-credentials
+
+# GCP credentials
+.gcp/
+gcp-credentials.json
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Cache directories
+.cache/
+node_modules/
+.npm/
+.yarn/
+
+# Test artifacts
+test-results/
+coverage/
+.nyc_output/
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Package manager files
+package-lock.json
+yarn.lock
+Pipfile.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+vendor/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+target/
+
+# Ruby
+*.gem
+.bundle/
+vendor/bundle/
+
+# Documentation build
+docs/_build/
+site/
+
+# Local configuration overrides
+config/local.yaml
+config/local.yml
+local-config.*
+
+# Development tools
+.pre-commit-config.yaml
+.commitlintrc.*
+.eslintrc.*
+.prettierrc.*
+
+# Temporary directories
+tmp/
+temp/
+.tmp/
+
+# Archive files
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Certificate files
+*.crt
+*.cert
+*.ca-bundle
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# Helm
+charts/*/charts/
+charts/*/requirements.lock
+
+# Ansible
+*.retry
+.vault_pass
+
+# Vagrant
+.vagrant/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Monitoring and observability
+prometheus.yml
+grafana.ini
+
+# Custom exclusions for this project
+# Add any project-specific files to ignore below this line
